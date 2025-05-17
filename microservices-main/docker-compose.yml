@@ -1,0 +1,92 @@
+version: '3.8'
+services:
+  # RabbitMQ service with management UI
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"   # AMQP protocol port for RabbitMQ messaging
+      - "15672:15672" # Management interface
+    networks:
+      - mynetwork
+
+  # MongoDB service for the database
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - mynetwork
+
+  # User Service
+  user-service:
+    build:
+      context: ./user-service
+    depends_on:
+      - rabbitmq
+      - mongodb
+    ports:
+      - "3001:3001"
+    networks:
+      - mynetwork
+    environment:
+      - MONGO_URL=mongodb://mongodb:27017/userdb # MongoDB connection string
+      - RABBITMQ_URL=amqp://rabbitmq:5672        # RabbitMQ connection string
+      - NODE_ENV=production
+
+  # Product Service
+  product-service:
+    build:
+      context: ./product-service
+    depends_on:
+      - rabbitmq
+      - mongodb
+    ports:
+      - "3002:3002"
+    networks:
+      - mynetwork
+    environment:
+      - MONGO_URL=mongodb://mongodb:27017/productdb # MongoDB connection string
+      - RABBITMQ_URL=amqp://rabbitmq:5672           # RabbitMQ connection string
+      - NODE_ENV=production
+
+  # Order Service
+  order-service:
+    build:
+      context: ./order-service
+    depends_on:
+      - rabbitmq
+      - mongodb
+    ports:
+      - "3004:3004"
+    networks:
+      - mynetwork
+    environment:
+      - MONGO_URL=mongodb://mongodb:27017/orderdb # MongoDB connection string
+      - RABBITMQ_URL=amqp://rabbitmq:5672         # RabbitMQ connection string
+      - NODE_ENV=production
+
+  # GraphQL Gateway Service
+  graphql-gateway:
+    build:
+      context: ./graphql-gateway
+    depends_on:
+      - user-service
+      - product-service
+      - order-service
+    ports:
+      - "4000:4000" # GraphQL API port
+    networks:
+      - mynetwork
+    environment:
+      - NODE_ENV=production
+
+networks:
+  mynetwork:
+    driver: bridge
+
+volumes:
+  mongo_data:
+    driver: local
