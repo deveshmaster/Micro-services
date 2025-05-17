@@ -156,8 +156,6 @@ Contributions are welcome! If you want to contribute to this project, please fol
 4. Push to the branch (`git push origin feature-branch`).
 5. Open a pull request.
 
-## **License**
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
 
 ## **GitHub Repository**
 To access the project repository, visit [GitHub - your-project-repo](https://github.com/deveshmaster/Micro-services/tree/main).
